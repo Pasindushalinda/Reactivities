@@ -1,17 +1,17 @@
 import React, { FormEvent, useContext, useEffect, useState } from 'react'
 import { Button, Form, Segment } from 'semantic-ui-react';
-import { IActivity } from '../../../app/models/activity';
+import { Activity } from '../../../app/models/activity';
 import { v4 as uuid } from 'uuid';
 import { observer } from 'mobx-react-lite';
 import ActivityStore from '../../../app/stores/activityStore';
-import { RouteComponentProps } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 
-interface DetailParams {
-    id: string;
-}
 
-const ActivityForm: React.FC<RouteComponentProps<DetailParams>> = ({ match, history }) => {
+export default observer(function ActivityForm() {
+    const history = useHistory();
+    const { id } = useParams<{ id: string }>();
     const activityStore = useContext(ActivityStore);
+   
     const {
         createActivity,
         editActivity,
@@ -21,7 +21,7 @@ const ActivityForm: React.FC<RouteComponentProps<DetailParams>> = ({ match, hist
         clearActivity
     } = activityStore;
 
-    const [activity, setActivity] = useState<IActivity>({
+    const [activity, setActivity] = useState<Activity>({
         id: '',
         title: '',
         description: '',
@@ -32,14 +32,14 @@ const ActivityForm: React.FC<RouteComponentProps<DetailParams>> = ({ match, hist
     });
 
     useEffect(() => {
-        if (match.params.id && activity.id.length === 0) {
-            loadActivity(match.params.id).then(() => initiazeFormState && setActivity(initiazeFormState));
+        if (id && activity.id.length === 0) {
+            loadActivity(id).then(() => initiazeFormState && setActivity(initiazeFormState));
         }
 
         return (() => {
             clearActivity()
         })
-    }, [match.params.id, loadActivity, initiazeFormState, clearActivity, activity.id.length])
+    }, [id, loadActivity, initiazeFormState, clearActivity, activity.id.length])
 
     const handleSubmit = () => {
         if (activity.id.length === 0) {
@@ -100,7 +100,7 @@ const ActivityForm: React.FC<RouteComponentProps<DetailParams>> = ({ match, hist
                     loading={submitting}
                 />
                 <Button
-                    onClick={()=>history.push('/activities')}
+                    onClick={() => history.push('/activities')}
                     floated='right'
                     type='cancel'
                     content='Cancel'
@@ -108,6 +108,4 @@ const ActivityForm: React.FC<RouteComponentProps<DetailParams>> = ({ match, hist
             </Form>
         </Segment>
     )
-}
-
-export default observer(ActivityForm);
+})

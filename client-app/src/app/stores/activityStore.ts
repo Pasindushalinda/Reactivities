@@ -8,7 +8,7 @@ import {
 } from 'mobx';
 import { createContext, SyntheticEvent } from 'react';
 import agent from '../api/agent';
-import { IActivity } from '../models/activity';
+import { Activity } from '../models/activity';
 
 configure({ enforceActions: 'always' });
 
@@ -18,7 +18,7 @@ class activityStore {
   }
 
   @observable activityRegistry = new Map();
-  @observable activity: IActivity | null = null;
+  @observable activity: Activity | null = null;
   @observable loadingInitials = false;
   @observable submitting = false;
   @observable target = '';
@@ -27,7 +27,7 @@ class activityStore {
     this.activity = this.activityRegistry.get(id);
   };
 
-  @action createActivity = async (activity: IActivity) => {
+  @action createActivity = async (activity: Activity) => {
     this.submitting = true;
     try {
       await agent.activities.create(activity);
@@ -65,12 +65,28 @@ class activityStore {
   };
 
   @computed get activitiesByDate() {
-    return Array.from(this.activityRegistry.values()).sort(
+    return this.groupActivityByDate(Array.from(this.activityRegistry.values()));
+  }
+
+  groupActivityByDate(activities: Activity[]) {
+    const sortedActivities = activities.sort(
       (a, b) => Date.parse(a.date) - Date.parse(b.date)
+    );
+    return Object.entries(
+      sortedActivities.reduce(
+        (activities, activity) => {
+          const date = activity.date.split('T')[0];
+          activities[date] = activities[date]
+            ? [...activities[date], activity]
+            : [activity];
+          return activities;
+        },
+        {} as { [key: string]: Activity[] }
+      )
     );
   }
 
-  @action editActivity = async (activity: IActivity) => {
+  @action editActivity = async (activity: Activity) => {
     this.submitting = true;
     try {
       await agent.activities.update(activity);
@@ -139,8 +155,6 @@ class activityStore {
   @action clearActivity = () => {
     this.activity = null;
   };
-
- 
 }
 
 export default createContext(new activityStore());

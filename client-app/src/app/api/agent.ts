@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { IActivity } from '../models/activity';
+import { Activity } from '../models/activity';
 
 axios.defaults.baseURL = 'https://localhost:5001/api';
 
@@ -18,10 +18,10 @@ const request = {
 };
 
 const activities = {
-  list: (): Promise<IActivity[]> => request.get('/activities'),
+  list: (): Promise<Activity[]> => request.get('/activities'),
   details: (id: string) => request.get(`/activities/${id}`),
-  create: (activity: IActivity) => request.post('/activities', activity),
-  update: (activity: IActivity) =>
+  create: (activity: Activity) => request.post('/activities', activity),
+  update: (activity: Activity) =>
     request.put(`/activities/${activity.id}`, activity),
   delete: (id: string) => request.del(`/activities/${id}`),
 };
