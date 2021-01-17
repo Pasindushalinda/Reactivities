@@ -46,7 +46,6 @@ class activityStore {
 
   @action loadActivities = async () => {
     this.loadingInitials = true;
-
     try {
       const activities = await agent.activities.list();
       runInAction(() => {
@@ -60,13 +59,13 @@ class activityStore {
       runInAction(() => {
         this.loadingInitials = false;
       });
-      console.log(error);
+      throw error;
     }
   };
 
   @computed get activitiesByDate() {
     return this.groupActivityByDate(Array.from(this.activityRegistry.values()));
-  }
+  }  
 
   groupActivityByDate(activities: Activity[]) {
     const sortedActivities = activities.sort(
@@ -85,6 +84,32 @@ class activityStore {
       )
     );
   }
+
+  @action loadActivity = async (id: string) => {
+    let activity = this.getActivity(id);
+
+    if (activity) {
+      this.activity = activity;
+    } else {
+      this.loadingInitials = true;
+      try {
+        let activity = await agent.activities.details(id);
+        runInAction(() => {
+          this.activity = activity;
+          this.loadingInitials = false;
+        });
+      } catch (error) {
+        runInAction(() => {
+          this.loadingInitials = false;
+        });
+        console.log(error);
+      }
+    }
+  };
+
+  getActivity = (id: string) => {
+    return this.activityRegistry.get(id);
+  };
 
   @action editActivity = async (activity: Activity) => {
     this.submitting = true;
@@ -126,31 +151,7 @@ class activityStore {
     }
   };
 
-  @action loadActivity = async (id: string) => {
-    let activity = this.getActivity(id);
-
-    if (activity) {
-      this.activity = activity;
-    } else {
-      this.loadingInitials = true;
-      try {
-        let activity = await agent.activities.details(id);
-        runInAction(() => {
-          this.activity = activity;
-          this.loadingInitials = false;
-        });
-      } catch (error) {
-        runInAction(() => {
-          this.loadingInitials = false;
-        });
-        console.log(error);
-      }
-    }
-  };
-
-  getActivity = (id: string) => {
-    return this.activityRegistry.get(id);
-  };
+  
 
   @action clearActivity = () => {
     this.activity = null;
